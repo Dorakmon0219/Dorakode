@@ -58,7 +58,7 @@ Dorakode 目前状态：**未开始**
 ```bash
 git clone https://github.com/Dorakmon0219/Dorakode.git
 cd Dorakode
-pip install -r requirements.txt
+uv sync
 ```
 
 配置模型（兼容 Anthropic / OpenAI 接口）：
@@ -71,14 +71,14 @@ cp .env.example .env
 运行：
 
 ```bash
-python -m dorakode                        # 交互式 REPL
-python -m dorakode "修复 pytest 失败的用例"  # 单次任务
+uv run python -m dorakode # 交互式 REPL
+uv run python -m dorakode "修复 pytest 失败的用例"  # 单次任务
 ```
 
 安装为全局命令（可选）：
 
 ```bash
-pip install -e .
+uv pip install -e .
 dorakode "解释 src/parser.py 的逻辑"
 ```
 ## 技术栈
@@ -86,7 +86,7 @@ dorakode "解释 src/parser.py 的逻辑"
 - **语言**：Python 3.11+
 - **CLI**：`argparse` / `click`
 - **模型接口**：Anthropic SDK，兼容 OpenAI 接口
-- **依赖管理**：`requirements.txt` + `pyproject.toml`
+- **依赖管理**：`pyproject.toml` + `uv`（`uv.lock` 锁定版本）
 
 ## 致谢
 
