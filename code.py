@@ -53,16 +53,25 @@ def agent_loop(messages: list):
         for block in response.content:
             if block.type != "tool_use":
                 continue
+            args_preview = str(block.input)
+            if len(args_preview) > 200:
+                args_preview = args_preview[:200] + "..."
+            print(f"\033[35m[tool] {block.name} {args_preview}\033[0m")
             try:
-                # 按工具名分发，避免硬编码 command
-                if block.name == "bash":
-                    print(f"\033[33m$ {block.input['command']}\033[0m")
-                    output = run_bash(block.input["command"])
-                else:
+                handler = TOOL_HANDLERS.get(block.name)
+                if handler is None:
                     output = f"未知工具: {block.name}"
+                else:
+                    if block.name == "bash":
+                        print(f"\033[33m$ {block.input['command']}\033[0m")
+                    output = handler(**block.input)
             except Exception as e:
                 output = f"工具执行出错: {e}"
-            print(output[:250])
+            # 打印工具输出
+            print("\033[90m" + "-" * 80 + "\033[0m")
+            print(output)
+            print("\033[90m" + "-" * 80 + "\033[0m")
+            # 将工具结果添加到 messages 中，供下一轮使用
             results.append({
                 "type": "tool_result",
                 "tool_use_id": block.id,
@@ -94,6 +103,3 @@ if __name__ == "__main__":
                 if getattr(block, "type", None) == "text":
                     print(block.text)
         print()
-
-
-
