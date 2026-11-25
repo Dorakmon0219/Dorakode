@@ -12,6 +12,7 @@ from anthropic import Anthropic
 from dotenv import load_dotenv
 from tools import *
 from permission import check_permission
+from ui import tool, cmd, warn, deny, result, answer
 
 load_dotenv(override = True)
 
@@ -42,7 +43,7 @@ def agent_loop(messages: list):
 
         # 被截断：不要执行可能不完整的 tool_use
         if response.stop_reason == "max_tokens":
-            print("\033[31m[警告] 回复被 max_tokens 截断，本轮中止\033[0m")
+            warn("回复被 max_tokens 截断，本轮中止")
             return response.content
 
         # 其他非工具原因（refusal / stop_sequence 等）：直接返回
@@ -57,7 +58,7 @@ def agent_loop(messages: list):
             args_preview = str(block.input)
             if len(args_preview) > 200:
                 args_preview = args_preview[:200] + "..."
-            print(f"\033[35m[tool] {block.name} {args_preview}\033[0m")
+            tool(block.name, args_preview)
             try:
                 handler = TOOL_HANDLERS.get(block.name)
                 if handler is None:
@@ -71,17 +72,15 @@ def agent_loop(messages: list):
                             "content": "Permission denied by policy or user. ",
                             "is_error": True,
                         })
-                        print("\033[31m⛔ Permission denied.\033[0m")
+                        deny("Permission denied.")
                         continue
                     if block.name == "bash":
-                        print(f"\033[33m$ {block.input['command']}\033[0m")
+                        cmd(block.input["command"])
                     output = handler(**block.input)
             except Exception as e:
                 output = f"工具执行出错: {e}"
             # 打印工具输出
-            print("\033[90m" + "-" * 80 + "\033[0m")
-            print(output)
-            print("\033[90m" + "-" * 80 + "\033[0m")
+            result(output)
             # 将工具结果添加到 messages 中，供下一轮使用
             results.append({
                 "type": "tool_result",
@@ -112,5 +111,5 @@ if __name__ == "__main__":
         if final_content:
             for block in final_content:
                 if getattr(block, "type", None) == "text":
-                    print(block.text)
+                    answer(block.text)
         print()
