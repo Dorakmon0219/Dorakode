@@ -11,6 +11,7 @@ except ImportError:
 from anthropic import Anthropic
 from dotenv import load_dotenv
 from tools import *
+from permission import check_permission
 
 load_dotenv(override = True)
 
@@ -62,6 +63,16 @@ def agent_loop(messages: list):
                 if handler is None:
                     output = f"未知工具: {block.name}"
                 else:
+                    # 权限检查
+                    if not check_permission(block):
+                        results.append({
+                            "type": "tool_result",
+                            "tool_use_id": block.id,
+                            "content": "Permission denied by policy or user. ",
+                            "is_error": True,
+                        })
+                        print("\033[31m⛔ Permission denied.\033[0m")
+                        continue
                     if block.name == "bash":
                         print(f"\033[33m$ {block.input['command']}\033[0m")
                     output = handler(**block.input)

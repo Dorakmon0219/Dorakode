@@ -1,5 +1,4 @@
 import subprocess
-import os
 from pathlib import Path
 
 WORKDIR = Path.cwd()
@@ -67,9 +66,6 @@ TOOLS = [
 
 # bash
 def run_bash(command: str) -> str:
-    dangerous = ["rm -rf /", "sudo", "shutdown", "reboot", "> /dev/"]
-    if any(d in command for d in dangerous):
-        return "Error: Dangerous command blocked"
     try:
         r = subprocess.run(command, shell=True, cwd=WORKDIR,
                            capture_output=True, text=True, timeout=120)
